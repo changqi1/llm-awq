@@ -149,7 +149,7 @@ def run_awq(
             apply_scale(layers[i], scales_list, input_feat_dict=input_feat)
             # append prefix to make names global
             awq_results["scale"] += append_str_prefix(scales_list, get_op_name(model, layer) + ".")
-            print(awq_results["scale"])
+            print('>>> awq_results["scale"]:', awq_results["scale"])
 
         # Clear GPU memory
         # torch.cuda.empty_cache()
@@ -161,7 +161,8 @@ def run_awq(
             apply_clip(layer, clip_list)
             # append prefix to make names global
             awq_results["clip"] += append_str_prefix(clip_list, get_op_name(model, layer) + ".")
-            print(awq_results["clip"])
+            print('>>> awq_results["clip"]: ', awq_results["clip"])
+            print('>>> awq_results["clip"][0][1].shape: ', awq_results["clip"][0][1].shape)
 
         # layer = layer.cpu()
         # Haotian: check activation replacement

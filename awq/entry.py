@@ -124,7 +124,7 @@ def build_model_and_enc(model_path):
             awq_results = run_awq(
                 model, enc,
                 w_bit=args.w_bit, q_config=q_config,
-                n_samples=128, seqlen=512, mse_range=False
+                n_samples=128, seqlen=512
             )
             if args.dump_awq:
                 dirpath = os.path.dirname(args.dump_awq)
