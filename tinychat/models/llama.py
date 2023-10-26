@@ -118,7 +118,7 @@ class LlamaAttentionFused(nn.Module):
                     self.head_dim,
                 )
             )
-            .cuda()
+            # .cuda()
             .half()
         )  # added to half
         # 8: pack 8 fp16 in FT, if fp32 then use 4
@@ -133,7 +133,7 @@ class LlamaAttentionFused(nn.Module):
                     8,
                 )
             )
-            .cuda()
+            # .cuda()
             .half()
         )  # added to half
 

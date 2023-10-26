@@ -19,10 +19,10 @@ def _time_module(module, inputs, measure_iters=1000):
     for i in range(measure_iters):
         module(inputs)
     for i in range(measure_iters):
-        torch.cuda.synchronize()
+        # torch.cuda.synchronize()
         st = time.time()
         module(inputs)
-        torch.cuda.synchronize()
+        # torch.cuda.synchronize()
         ed = time.time()
         time_lis.append((ed - st))
     return np.median(time_lis)

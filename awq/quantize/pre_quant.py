@@ -73,8 +73,8 @@ def run_awq(
     inps = []
     layer_kwargs = {}
 
-    layers[0] = layers[0].cuda()
-    move_embed(model, "cuda")
+    # layers[0] = layers[0].cuda()
+    # move_embed(model, "cuda")
     
     # get input and kwargs to layer 0
     # with_kwargs is only supported in PyTorch 2.0
@@ -99,11 +99,11 @@ def run_awq(
     layers[0] = layers[0].module  # restore
     inps = inps[0]
 
-    layers[0] = layers[0].cpu()
-    move_embed(model, "cpu")
+    # layers[0] = layers[0].cpu()
+    # move_embed(model, "cpu")
     
     gc.collect()
-    torch.cuda.empty_cache()
+    # torch.cuda.empty_cache()
 
     awq_results = {
         "scale": [],
@@ -113,13 +113,13 @@ def run_awq(
     # solve layer by layer
     for i in tqdm.tqdm(range(len(layers)), desc="Running AWQ..."):
         layer = layers[i]
-        layer = layer.cuda()
+        # layer = layer.cuda()
         named_linears = get_named_linears(layer)
 
         # firstly, get input features of all linear layers
         def cache_input_hook(m, x, y, name, feat_dict):
             x = x[0]
-            x = x.detach().cpu()
+            x = x.detach()
             feat_dict[name].append(x)
 
         input_feat = defaultdict(list)
@@ -137,7 +137,7 @@ def run_awq(
         input_feat = {k: torch.cat(v, dim=0) for k, v in input_feat.items()}
 
         # Clear GPU memory
-        torch.cuda.empty_cache()
+        # torch.cuda.empty_cache()
 
         if auto_scale:  # if it applies, we should also modify the input_feat with scales
             scales_list = auto_scale_block(
@@ -149,9 +149,10 @@ def run_awq(
             apply_scale(layers[i], scales_list, input_feat_dict=input_feat)
             # append prefix to make names global
             awq_results["scale"] += append_str_prefix(scales_list, get_op_name(model, layer) + ".")
+            print(awq_results["scale"])
 
         # Clear GPU memory
-        torch.cuda.empty_cache()
+        # torch.cuda.empty_cache()
         
         if mse_range:
             clip_list = auto_clip_block(layer,
@@ -160,12 +161,13 @@ def run_awq(
             apply_clip(layer, clip_list)
             # append prefix to make names global
             awq_results["clip"] += append_str_prefix(clip_list, get_op_name(model, layer) + ".")
+            print(awq_results["clip"])
 
-        layer = layer.cpu()
+        # layer = layer.cpu()
         # Haotian: check activation replacement
         del input_feat
         gc.collect()
-        torch.cuda.empty_cache()
+        # torch.cuda.empty_cache()
         
     return awq_results
 

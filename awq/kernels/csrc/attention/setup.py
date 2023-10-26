@@ -26,7 +26,7 @@ def get_cuda_bare_metal_version(cuda_dir):
 
 def check_cuda_torch_binary_vs_bare_metal(cuda_dir):
     raw_output, bare_metal_version = get_cuda_bare_metal_version(cuda_dir)
-    torch_binary_version = parse(torch.version.cuda)
+    torch_binary_version = parse(torch.version)
 
     print("\nCompiling cuda extensions with")
     print(raw_output + "from " + cuda_dir + "/bin\n")
@@ -35,7 +35,7 @@ def check_cuda_torch_binary_vs_bare_metal(cuda_dir):
         raise RuntimeError(
             "Cuda extensions are being compiled with a version of Cuda that does "
             "not match the version used to compile Pytorch binaries.  "
-            "Pytorch binaries were compiled with Cuda {}.\n".format(torch.version.cuda)
+            "Pytorch binaries were compiled with Cuda {}.\n".format(torch.version)
             + "In some cases, a minor-version mismatch will not cause later errors:  "
             "https://github.com/NVIDIA/apex/pull/323#discussion_r287021798.  "
             "You can try commenting out this check (at your own risk)."
@@ -59,9 +59,9 @@ def append_nvcc_threads(nvcc_extra_args):
     return nvcc_extra_args
 
 
-if not torch.cuda.is_available():
+if not torch.is_available():
     # https://github.com/NVIDIA/apex/issues/486
-    # Extension builds after https://github.com/pytorch/pytorch/pull/23408 attempt to query torch.cuda.get_device_capability(),
+    # Extension builds after https://github.com/pytorch/pytorch/pull/23408 attempt to query torch.get_device_capability(),
     # which will fail if you are compiling in an environment without visible GPUs (e.g. during an nvidia-docker build command).
     print(
         "\nWarning: Torch did not find available GPUs on this system.\n",

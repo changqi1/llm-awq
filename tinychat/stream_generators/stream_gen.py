@@ -62,7 +62,7 @@ def StreamGenerator(
     max_new_tokens = gen_params.n_predict
     start_pos = 0
     for i in range(max_new_tokens):
-        torch.cuda.synchronize()
+        # torch.cuda.synchronize()
         t_st = time.time()
 
         if i == 0:
@@ -91,7 +91,7 @@ def StreamGenerator(
             out = model(inputs, start_pos=start_pos)
             start_pos += out.shape[1]
             logits = out
-        torch.cuda.synchronize()
+        # torch.cuda.synchronize()
         t_ed = time.time()
 
         # Processing the logits
@@ -185,6 +185,6 @@ def StreamGenerator(
 
     del past_key_values, out
     gc.collect()
-    torch.cuda.empty_cache()
+    # torch.cuda.empty_cache()
 
     # return context_tokens, context_time, total_tokens, generation_time_list

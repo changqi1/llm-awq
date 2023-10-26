@@ -114,7 +114,7 @@ def auto_scale_block(module, module_kwargs,
         # Clear GPU memory
         del weight
         gc.collect()
-        torch.cuda.empty_cache()
+        # torch.cuda.empty_cache()
 
         x = x.to(next(block.parameters()).device)
         with torch.no_grad():
@@ -131,7 +131,7 @@ def auto_scale_block(module, module_kwargs,
         n_grid = 20
         history = []
 
-        org_sd = {k: v.cpu() for k, v in block.state_dict().items()}
+        org_sd = {k: v for k, v in block.state_dict().items()}
         for ratio in range(n_grid):
             ratio = ratio * 1 / n_grid
             scales = (x_max.pow(ratio) / w_max.pow(1-ratio)
@@ -169,7 +169,7 @@ def auto_scale_block(module, module_kwargs,
             module2inspect = layers[0]
 
         scales = _search_module_scale(module2inspect, layers, inp, kwargs)
-        scales = scales.detach().cpu()
+        scales = scales.detach()
         # prev_op_name, [layer_name], scale
         return (get_op_name(module, prev_op), tuple([get_op_name(module, m) for m in layers]), scales)
 
@@ -347,10 +347,10 @@ def apply_scale(module, scales_list, input_feat_dict=None):
         prev_op = get_op_by_name(module, prev_op_name)
         layers = [get_op_by_name(module, name) for name in layer_names]
 
-        prev_op.cuda()
-        for layer in layers:
-            layer.cuda()
-        scales.cuda()
+        # prev_op.cuda()
+        # for layer in layers:
+        #     layer.cuda()
+        # scales.cuda()
         
         if isinstance(prev_op, nn.Linear):
             assert len(layers) == 1
@@ -371,7 +371,7 @@ def apply_scale(module, scales_list, input_feat_dict=None):
                 inp = input_feat_dict[layer_name]
                 inp.div_(scales.view(1, -1).to(inp.device))
 
-        prev_op.cpu()
-        for layer in layers:
-            layer.cpu()
-        scales.cpu()
+        # prev_op.cpu()
+        # for layer in layers:
+        #     layer.cpu()
+        # scales.cpu()

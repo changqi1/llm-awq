@@ -99,7 +99,7 @@ def main():
     print("Benchmarking...")
     with torch.inference_mode():
         for i in range(gen_length):
-            torch.cuda.synchronize()
+            # torch.cuda.synchronize()
             t_st = time.time()
 
             if i == 0:
@@ -109,7 +109,7 @@ def main():
             out = model(inputs, start_pos=start_pos)
             start_pos += out.shape[1]
 
-            torch.cuda.synchronize()
+            # torch.cuda.synchronize()
             t_ed = time.time()
             time_lis.append(t_ed - t_st)
             token = out[:, -1].max(1)[1].unsqueeze(1)

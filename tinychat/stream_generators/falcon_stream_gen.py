@@ -143,4 +143,4 @@ def FalconStreamGenerator(
 
     # clean
     gc.collect()
-    torch.cuda.empty_cache()
+    # torch.cuda.empty_cache()

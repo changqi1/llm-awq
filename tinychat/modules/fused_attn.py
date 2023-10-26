@@ -305,7 +305,7 @@ def make_quant_attn(model, dev):
     """
     Replace all LlamaAttention modules with QuantLlamaAttention modules, fusing the q, k, v projections.
     """
-    model = model.cpu()
+    # model = model.cpu()
     for name, m in model.named_modules():
         if not m.__class__.__name__ in ["LlamaAttention", "LlamaAttentionFused"]:
             continue
@@ -366,5 +366,5 @@ def make_quant_attn(model, dev):
         # print(f"Replacing {name} with quant_attn; parent: {parent_name}, child's name: {child_name}")
         setattr(parent, child_name, attn)
         gc.collect()
-        torch.cuda.empty_cache()
+        # torch.cuda.empty_cache()
     model = model.to(dev)

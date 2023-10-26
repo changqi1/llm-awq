@@ -115,6 +115,7 @@ def build_model_and_enc(model_path):
         model = AutoModelForCausalLM.from_pretrained(
             model_path, config=config, trust_remote_code=True, **kwargs)
 
+        model = model.to(torch.float32)
         model.eval()
 
         if args.run_awq:
@@ -123,7 +124,7 @@ def build_model_and_enc(model_path):
             awq_results = run_awq(
                 model, enc,
                 w_bit=args.w_bit, q_config=q_config,
-                n_samples=128, seqlen=512,
+                n_samples=128, seqlen=512, mse_range=False
             )
             if args.dump_awq:
                 dirpath = os.path.dirname(args.dump_awq)
@@ -157,7 +158,7 @@ def build_model_and_enc(model_path):
                     
                     print(
                         f"Saving the quantized model at {args.dump_quant}...")
-                    torch.save(model.cpu().state_dict(), args.dump_quant)
+                    torch.save(model.state_dict(), args.dump_quant)
                     exit(0)
             else:
                 raise NotImplementedError
