@@ -37,8 +37,8 @@ class WQLinear(nn.Module):
     def __init__(self, w_bit, group_size, in_features, out_features, bias, dev):
         super().__init__()
         
-        if w_bit not in [4]:
-            raise NotImplementedError("Only 4-bit are supported for now.")
+        #if w_bit not in [4]:
+        #    raise NotImplementedError("Only 4-bit are supported for now.")
         
         self.in_features = in_features
         self.out_features = out_features
@@ -51,8 +51,8 @@ class WQLinear(nn.Module):
         pack_num = (32 // self.w_bit)
         # TODO (Haotian): a function for buffer shape calculation
         self.register_buffer('qweight', torch.zeros((out_features, in_features // pack_num), dtype=torch.int32, device=dev))
-        self.register_buffer('qzeros', torch.zeros((out_features, calculate_zeros_width(in_features, self.group_size)), dtype=torch.int32, device=dev))
-        self.register_buffer('scales', torch.zeros((out_features, calculate_zeros_width(in_features, self.group_size) * pack_num), dtype=torch.float16, device=dev))
+        self.register_buffer('qzeros', torch.zeros((out_features, calculate_zeros_width(in_features, self.group_size, pack_num)), dtype=torch.int32, device=dev))
+        self.register_buffer('scales', torch.zeros((out_features, calculate_zeros_width(in_features, self.group_size, pack_num) * pack_num), dtype=torch.float16, device=dev))
         if bias:
             self.register_buffer('bias', torch.zeros((out_features), dtype=torch.float16, device=dev))
         else:
@@ -70,7 +70,7 @@ class WQLinear(nn.Module):
 
         pack_num = 32 // awq_linear.w_bit
         qscales = torch.zeros(
-            (scales.shape[0], calculate_zeros_width(linear.in_features, group_size) * pack_num),
+            (scales.shape[0], calculate_zeros_width(linear.in_features, group_size, pack_num) * pack_num),
             dtype=torch.float16,
             device=scales.device
         )
@@ -92,8 +92,10 @@ class WQLinear(nn.Module):
             if awq_linear.w_bit == 4:
                 # order_map = [0, 2, 4, 6, 1, 3, 5, 7]
                 order_map = [0, 1, 2, 3, 4, 5, 6, 7]
+            elif awq_linear.w_bit == 8:
+                order_map = [0, 1, 2, 3]
             else:
-                raise NotImplementedError("Only 4-bit are supported for now.")
+                raise NotImplementedError("Only 4-bit and 8-bit are supported for now.")
             for i in range(pack_num):
                 qweight_col = intweight[:, col * pack_num + order_map[i]]
                 qweight[:, col] |= qweight_col << (i * awq_linear.w_bit)
@@ -101,7 +103,7 @@ class WQLinear(nn.Module):
 
         zeros = zeros.to(dtype=torch.int32)
         qzeros = torch.zeros(
-            (zeros.shape[0], calculate_zeros_width(linear.in_features, group_size)),
+            (zeros.shape[0], calculate_zeros_width(linear.in_features, group_size, pack_num)),
             dtype=torch.int32,
             device=zeros.device,
         )
@@ -110,8 +112,10 @@ class WQLinear(nn.Module):
             if awq_linear.w_bit == 4:
                 # order_map = [0, 2, 4, 6, 1, 3, 5, 7]
                 order_map = [0, 1, 2, 3, 4, 5, 6, 7]
+            elif awq_linear.w_bit == 8:
+                order_map = [0, 1, 2, 3]
             else:
-                raise NotImplementedError("Only 4-bit are supported for now.")
+                raise NotImplementedError("Only 4-bit and 8-bit are supported for now.")
             for i in range(pack_num):
                 if col * pack_num + order_map[i] >= zeros.shape[1]:
                     continue
